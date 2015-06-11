@@ -141,7 +141,7 @@ object FlinkEngine extends DistributedEngine {
       def reduce(v1: Vector, v2: Vector) = v1 + v2
     })
 
-    val list = CheckpointedFlinkDrm.flinkCollect(sum, "FlinkEngine colSums()")
+    val list = sum.collect.asScala.toList
     list.head
   }
 
@@ -167,7 +167,7 @@ object FlinkEngine extends DistributedEngine {
       def reduce(v1: Double, v2: Double) = v1 + v2
     })
 
-    val list = CheckpointedFlinkDrm.flinkCollect(sumOfSquares, "FlinkEngine norm()")
+    val list = sumOfSquares.collect.asScala.toList
     list.head
   }
 

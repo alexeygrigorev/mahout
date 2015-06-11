@@ -49,7 +49,7 @@ class CheckpointedFlinkDrm[K: ClassTag](val ds: DrmDataSet[K],
       def reduce(a1: Long, a2: Long) = a1 + a2
     })
 
-    val list = CheckpointedFlinkDrm.flinkCollect(count, "CheckpointedFlinkDrm computeNRow()")
+    val list = count.collect().asScala.toList
     list.head
   }
 
@@ -60,7 +60,7 @@ class CheckpointedFlinkDrm[K: ClassTag](val ds: DrmDataSet[K],
       def reduce(a1: Int, a2: Int) = Math.max(a1, a2)
     })
 
-    val list = CheckpointedFlinkDrm.flinkCollect(max, "CheckpointedFlinkDrm computeNCol()")
+    val list = max.collect().asScala.toList
     list.head
   }
 
@@ -80,7 +80,7 @@ class CheckpointedFlinkDrm[K: ClassTag](val ds: DrmDataSet[K],
   def checkpoint(cacheHint: CacheHint.CacheHint): CheckpointedDrm[K] = this
 
   def collect: Matrix = {
-    val data = CheckpointedFlinkDrm.flinkCollect(ds, "Checkpointed Flink Drm collect()")
+    val data = ds.collect().asScala.toList
     val isDense = data.forall(_._2.isDense)
 
     val m = if (isDense) {
@@ -153,15 +153,5 @@ class CheckpointedFlinkDrm[K: ClassTag](val ds: DrmDataSet[K],
 
 object CheckpointedFlinkDrm {
   val UNKNOWN = -1
-
-  // needed for backwards compatibility with flink 0.8.1
-  def flinkCollect[K](dataset: DataSet[K], jobName: String = "flinkCollect()"): List[K] = {
-    val dataJavaList = new ArrayList[K]
-    val outputFormat = new LocalCollectionOutputFormat[K](dataJavaList)
-    dataset.output(outputFormat)
-    val data = dataJavaList.asScala
-    dataset.getExecutionEnvironment.execute(jobName)
-    data.toList
-  }
 
 }
